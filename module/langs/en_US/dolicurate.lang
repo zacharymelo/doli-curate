@@ -164,3 +164,6 @@ LabelRequired = A name is required.
 RuleSetNotFound = Rule set not found.
 NothingToUndo = This batch has already been undone.
 BadBatchId = Invalid batch reference.
+NotASupplier = That thirdparty is not flagged as a supplier.
+BadProductType = Product type must be either Product or Service.
+NoSuppliersFound = No suppliers found

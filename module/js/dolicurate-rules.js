@@ -9,15 +9,15 @@
 	var D = DoliCurate;
 	if (!D || !D.cfg || D.cfg.screen !== 'rules') { return; }
 
-	var state = { sets: [], current: null, matchTypes: {} };
+	var state = { sets: [], current: null, matchTypes: {}, suppliers: [] };
 
 	var MATCH_LABELS = {
 		1: 'Reference starts with',
 		2: 'Reference ends with',
 		3: 'Reference matches regex',
 		4: 'Label contains',
-		5: 'Product type is (0=product, 1=service)',
-		6: 'Has supplier (thirdparty id)',
+		5: 'Product type is',
+		6: 'Has supplier',
 		7: 'Every product',
 		8: 'Reference is exactly'
 	};
@@ -25,11 +25,65 @@
 	/** Match type 7 ("every product") takes no value. */
 	function needsValue(t) { return parseInt(t, 10) !== 7; }
 
+	var MATCH_TYPE_FIELD = 5;
+	var MATCH_SUPPLIER = 6;
+
+	/**
+	 * Some match types have a known set of valid values. Offering a picker for
+	 * those removes the guesswork of typing a raw id, and makes it impossible to
+	 * save a rule pointing at something that does not exist.
+	 */
+	function buildValueControl(matchType) {
+		var t = parseInt(matchType, 10);
+
+		if (t === MATCH_SUPPLIER) {
+			var sel = document.createElement('select');
+			sel.className = 'dc-input dc-valuectl';
+			if (!state.suppliers.length) {
+				var none = document.createElement('option');
+				none.value = '';
+				none.textContent = 'No suppliers found';
+				sel.appendChild(none);
+				sel.disabled = true;
+				return sel;
+			}
+			state.suppliers.forEach(function (sup) {
+				var o = document.createElement('option');
+				o.value = sup.id;
+				// The count explains up front why a supplier with no purchase
+				// prices would produce a rule that matches nothing.
+				o.textContent = sup.name + ' (' + sup.count + ')';
+				sel.appendChild(o);
+			});
+			return sel;
+		}
+
+		if (t === MATCH_TYPE_FIELD) {
+			var ts = document.createElement('select');
+			ts.className = 'dc-input dc-valuectl';
+			[['0', 'Product'], ['1', 'Service']].forEach(function (pair) {
+				var o = document.createElement('option');
+				o.value = pair[0];
+				o.textContent = pair[1];
+				ts.appendChild(o);
+			});
+			return ts;
+		}
+
+		var input = document.createElement('input');
+		input.type = 'text';
+		input.className = 'dc-input dc-valuectl';
+		input.placeholder = 'Value';
+		input.disabled = !needsValue(t);
+		return input;
+	}
+
 	function loadSets(selectId) {
 		D.get(D.cfg.urlRules, { action: 'list' }).then(function (data) {
 			if (!data.ok) { D.notify(data.error || 'Error', 'error'); return; }
 			state.sets = data.rulesets;
 			state.matchTypes = data.matchtypes || {};
+			state.suppliers = data.suppliers || [];
 			renderSets();
 			if (selectId) { openSet(selectId); }
 			else if (!state.current && state.sets.length) { openSet(state.sets[0].id); }
@@ -120,7 +174,7 @@
 		set.rules.forEach(function (r) {
 			var tr = D.make('tr', 'dc-row');
 			tr.appendChild(D.make('td', '', MATCH_LABELS[r.match_type] || r.match_type));
-			tr.appendChild(D.make('td', 'dc-mono', needsValue(r.match_type) ? r.match_value : '-'));
+			tr.appendChild(D.make('td', 'dc-mono', needsValue(r.match_type) ? (r.value_label || r.match_value) : '-'));
 			tr.appendChild(D.make('td', '', r.category_label || ('#' + r.category)));
 
 			var tdAct = D.make('td', 'right');
@@ -152,14 +206,12 @@
 			typeSel.appendChild(o);
 		});
 
-		var valInput = document.createElement('input');
-		valInput.type = 'text';
-		valInput.className = 'dc-input';
-		valInput.placeholder = 'Value';
+		var valInput = buildValueControl(typeSel.value);
 
 		typeSel.addEventListener('change', function () {
-			valInput.disabled = !needsValue(typeSel.value);
-			valInput.value = valInput.disabled ? '' : valInput.value;
+			var replacement = buildValueControl(typeSel.value);
+			adder.replaceChild(replacement, valInput);
+			valInput = replacement;
 		});
 
 		var catSel = categorySelect();
@@ -175,7 +227,9 @@
 				category: catSel.value
 			}).then(function (res) {
 				if (!res.ok) { D.notify(res.error || 'Failed', 'error'); return; }
-				valInput.value = '';
+				// Reset a typed value, but leave a picker on its current choice:
+				// adding several rules for the same supplier is common.
+				if (valInput.tagName === 'INPUT') { valInput.value = ''; }
 				openSet(set.id);
 				loadSets(set.id);
 			});

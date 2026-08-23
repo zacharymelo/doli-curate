@@ -242,6 +242,7 @@ class DoliCurateRules
 					'id' => (int) $o->rowid,
 					'match_type' => (int) $o->match_type,
 					'match_value' => (string) $o->match_value,
+					'value_label' => (string) $o->match_value,
 					'category' => (int) $o->fk_categorie,
 					'category_label' => (string) $o->catlabel,
 					'rang' => (int) $o->rang,
@@ -250,7 +251,65 @@ class DoliCurateRules
 			$this->db->free($resql);
 		}
 
+		$this->decorateValueLabels($out);
+
 		return $out;
+	}
+
+	/**
+	 * Replace raw stored values with something a human can read.
+	 *
+	 * A supplier rule stores a thirdparty id and a type rule stores 0 or 1;
+	 * neither means anything on screen. Supplier names are resolved in one
+	 * lookup rather than per row.
+	 *
+	 * @param  array<int,array<string,mixed>> $rules Rules, by reference
+	 * @return void
+	 */
+	private function decorateValueLabels(&$rules)
+	{
+		global $langs;
+
+		$supplierIds = array();
+		foreach ($rules as $r) {
+			if ((int) $r['match_type'] === self::MATCH_SUPPLIER && (int) $r['match_value'] > 0) {
+				$supplierIds[(int) $r['match_value']] = true;
+			}
+		}
+
+		$names = array();
+		if (!empty($supplierIds)) {
+			$sql = "SELECT rowid, nom FROM ".MAIN_DB_PREFIX."societe";
+			$sql .= " WHERE rowid IN (".$this->db->sanitize(implode(',', array_keys($supplierIds))).")";
+			$sql .= " AND entity IN (".getEntity('societe').")";
+			$resql = $this->db->query($sql);
+			if ($resql) {
+				while ($o = $this->db->fetch_object($resql)) {
+					$names[(int) $o->rowid] = (string) $o->nom;
+				}
+				$this->db->free($resql);
+			}
+		}
+
+		foreach ($rules as $k => $r) {
+			$type = (int) $r['match_type'];
+			$value = (string) $r['match_value'];
+
+			if ($type === self::MATCH_SUPPLIER) {
+				$id = (int) $value;
+				// A supplier deleted after the rule was written must not read as
+				// a silently valid rule.
+				$rules[$k]['value_label'] = isset($names[$id])
+					? $names[$id]
+					: '#'.$id.' ('.$langs->transnoentities('Unknown').')';
+			} elseif ($type === self::MATCH_TYPE) {
+				$rules[$k]['value_label'] = ((int) $value === 1)
+					? $langs->transnoentities('Service')
+					: $langs->transnoentities('Product');
+			} elseif ($type === self::MATCH_ALL) {
+				$rules[$k]['value_label'] = '-';
+			}
+		}
 	}
 
 	/**
@@ -285,6 +344,33 @@ class DoliCurateRules
 		if ($matchType !== self::MATCH_ALL && trim((string) $matchValue) === '') {
 			$this->error = 'MatchValueRequired';
 			return -1;
+		}
+
+		// A supplier rule stores a thirdparty id; reject anything that is not
+		// actually a supplier, so a rule cannot be saved that matches nothing.
+		if ($matchType === self::MATCH_SUPPLIER) {
+			$sql = "SELECT rowid FROM ".MAIN_DB_PREFIX."societe";
+			$sql .= " WHERE rowid = ".((int) $matchValue);
+			$sql .= " AND fournisseur = 1";
+			$sql .= " AND entity IN (".getEntity('societe').")";
+			$resql = $this->db->query($sql);
+			$found = ($resql && $this->db->num_rows($resql) > 0);
+			if ($resql) {
+				$this->db->free($resql);
+			}
+			if (!$found) {
+				$this->error = 'NotASupplier';
+				return -1;
+			}
+			$matchValue = (string) ((int) $matchValue);
+		}
+
+		if ($matchType === self::MATCH_TYPE) {
+			if (!in_array((int) $matchValue, array(0, 1), true)) {
+				$this->error = 'BadProductType';
+				return -1;
+			}
+			$matchValue = (string) ((int) $matchValue);
 		}
 
 		$sql = "INSERT INTO ".MAIN_DB_PREFIX."dolicurate_rule";

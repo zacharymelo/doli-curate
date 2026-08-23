@@ -5,6 +5,34 @@ All notable changes to Doli Curate are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-08-22
+
+### Changed
+
+- **"Has supplier" rules now use a supplier picker instead of a raw id box.**
+  The field listed a thirdparty id, which meant looking the number up elsewhere
+  and offered no protection against typing one that did not exist. It is now a
+  dropdown of thirdparties flagged as suppliers, each annotated with how many
+  products it prices — so a supplier that would make the rule match nothing is
+  visibly `(0)` rather than a silent dead end. Suppliers with no purchase prices
+  are still listed: hiding them would make an expected name simply absent with
+  no explanation.
+
+- **"Product type is" now offers Product / Service** rather than asking for
+  `0` or `1`.
+
+- **Saved rules display resolved values.** A supplier rule shows the supplier's
+  name and a type rule shows Product or Service, instead of the stored id. A
+  supplier deleted after its rule was written renders as `#id (Unknown)` so the
+  rule does not read as valid.
+
+### Added
+
+- Server-side validation for both fields: a supplier id must belong to an
+  existing thirdparty flagged as a supplier, and a product type must be 0 or 1.
+  The picker makes bad input unlikely; the validation makes it impossible,
+  including for anything posting the endpoint directly.
+
 ## [1.0.1] - 2026-08-22
 
 ### Fixed
@@ -60,5 +88,6 @@ First release.
   guarding against a mistyped rule rewriting the whole catalogue.
 - Every query is entity-scoped with `getEntity()`.
 
+[1.1.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.1.0
 [1.0.1]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.0.1
 [1.0.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.0.0

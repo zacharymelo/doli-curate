@@ -39,6 +39,10 @@ if (!$res) {
 
 dol_include_once('/dolicurate/lib/dolicurate.lib.php');
 dol_include_once('/dolicurate/class/dolicuraterules.class.php');
+dol_include_once('/dolicurate/class/dolicuratecatalog.class.php');
+
+// decorateValueLabels() translates Product/Service/Unknown for display.
+$langs->loadLangs(array('dolicurate@dolicurate', 'products', 'main'));
 
 $action = GETPOST('action', 'aZ09') ?: 'list';
 $readOnly = in_array($action, array('list', 'get', 'preview'), true);
@@ -49,7 +53,15 @@ $rules = new DoliCurateRules($db);
 
 switch ($action) {
 	case 'list':
-		dolicurateJson(array('ok' => true, 'rulesets' => $rules->listRuleSets(), 'matchtypes' => DoliCurateRules::matchTypes()));
+		// Suppliers travel with the list so the rule editor can offer a real
+		// picker instead of asking the user to know a thirdparty id.
+		$catalog = new DoliCurateCatalog($db);
+		dolicurateJson(array(
+			'ok' => true,
+			'rulesets' => $rules->listRuleSets(),
+			'matchtypes' => DoliCurateRules::matchTypes(),
+			'suppliers' => $catalog->listSuppliers(),
+		));
 		break;
 
 	case 'get':

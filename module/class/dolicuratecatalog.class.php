@@ -358,6 +358,46 @@ class DoliCurateCatalog
 	}
 
 	/**
+	 * Suppliers available to a "has supplier" rule.
+	 *
+	 * Every thirdparty flagged as a supplier is returned, including those with
+	 * no purchase prices yet, each annotated with how many products it prices.
+	 * Hiding the empty ones would make a supplier the user expected to see
+	 * simply absent, with no explanation; showing the count explains instead why
+	 * such a rule would match nothing.
+	 *
+	 * @return array<int,array{id:int,name:string,count:int}> Suppliers by name
+	 */
+	public function listSuppliers()
+	{
+		$sql = "SELECT s.rowid, s.nom,";
+		$sql .= " (SELECT COUNT(DISTINCT pfp.fk_product)";
+		$sql .= " FROM ".MAIN_DB_PREFIX."product_fournisseur_price as pfp";
+		$sql .= " WHERE pfp.fk_soc = s.rowid) as productcount";
+		$sql .= " FROM ".MAIN_DB_PREFIX."societe as s";
+		$sql .= " WHERE s.fournisseur = 1";
+		$sql .= " AND s.entity IN (".getEntity('societe').")";
+		$sql .= " ORDER BY s.nom ASC";
+
+		$out = array();
+		$resql = $this->db->query($sql);
+		if (!$resql) {
+			$this->error = $this->db->lasterror();
+			return $out;
+		}
+		while ($o = $this->db->fetch_object($resql)) {
+			$out[] = array(
+				'id' => (int) $o->rowid,
+				'name' => (string) $o->nom,
+				'count' => (int) $o->productcount,
+			);
+		}
+		$this->db->free($resql);
+
+		return $out;
+	}
+
+	/**
 	 * Headline numbers for the dashboard.
 	 *
 	 * @return array<string,mixed> Coverage figures
