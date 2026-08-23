@@ -1,0 +1,166 @@
+# Copyright (C) 2026 Zachary Melo
+# Doli Curate - English
+
+Module500420Name = Doli Curate
+Module500420Desc = Screens for assigning, sorting and curating product categories in bulk
+
+# Permissions
+Permission500421 = Read the curation screens
+Permission500422 = Assign and remove product categories
+Permission500423 = Create and run tagging rule sets
+Permission500424 = Reshape the category tree (rename, move, merge, delete)
+Permission500425 = Undo a previously applied batch
+
+# Menus / tabs
+DoliCurate = Curate
+MenuAssign = Assign
+MenuRules = Rules
+MenuTree = Category tree
+MenuHistory = History
+
+# Dashboard
+CurateDashboard = Catalogue curation
+CoverageTitle = Category coverage
+CoverageTagged = In at least one category
+CoverageUntagged = Not in any category
+CoverageTotal = Products and services
+CoverageProducts = Products
+CoverageServices = Services
+CoverageCategories = Categories
+CoverageEmptyCategories = Empty categories
+CoverageLinks = Category links
+CoverageHint = Products in no category cannot be reached by browsing anywhere in Dolibarr - only by search.
+StartAssigning = Assign categories
+ViewUntagged = Show untagged
+
+# Assign screen
+AssignTitle = Assign categories
+FilterSearch = Search reference, label or barcode
+FilterAll = All
+FilterUntagged = Untagged only
+FilterTagged = Tagged only
+FilterType = Type
+FilterStatus = Status
+FilterCategory = In category
+FilterSupplier = Supplier
+FilterForSale = For sale
+FilterForPurchase = For purchase
+IncludeSubcategories = Include subcategories
+SelectedCount = %s selected
+SelectAllOnPage = Select all on this page
+ClearSelection = Clear
+AddToCategories = Add to categories
+RemoveFromCategories = Remove from categories
+ChooseCategories = Choose one or more categories
+NoProductsMatch = No products match these filters.
+LoadingProducts = Loading...
+CurrentCategories = Categories
+ApplyChanges = Apply
+Applied = Applied
+Skipped = already set
+NothingSelected = Select at least one product and one category.
+
+# Rules screen
+RulesTitle = Tagging rules
+RuleSets = Rule sets
+NewRuleSet = New rule set
+RuleSetLabel = Name
+RuleSetDescription = Description
+RuleSetOnlyUntagged = Only apply to untagged products
+RuleSetRules = Rules
+AddRule = Add rule
+MatchType = Match
+MatchValue = Value
+TargetCategory = Assign to
+PreviewRuleSet = Preview
+ApplyRuleSet = Apply rule set
+PreviewResults = Preview
+PreviewChanges = %s change(s) across %s product(s)
+PreviewNoChanges = This rule set would change nothing. Everything it matches is already tagged.
+RuleMatches = %s match(es)
+DeleteRuleSet = Delete rule set
+ConfirmDeleteRuleSet = Delete this rule set and all its rules? Applied changes are kept.
+LastRun = Last run
+NeverRun = Never run
+NoRuleSets = No rule sets yet. Create one to tag products automatically as they arrive.
+RuleSetNeedsRules = Add at least one rule before previewing.
+
+MatchPrefix = Reference starts with
+MatchSuffix = Reference ends with
+MatchRegex = Reference matches regex
+MatchLabel = Label contains
+MatchType5 = Product type is
+MatchSupplier = Has supplier (id)
+MatchAll = Every product
+MatchRef = Reference is exactly
+
+# Tree screen
+TreeTitle = Category tree
+NewCategory = New category
+CategoryLabel = Label
+CategoryParent = Parent
+CategoryColor = Colour
+NoParentRoot = (root)
+RenameCategory = Rename
+MoveCategory = Move
+MergeCategory = Merge
+DeleteCategory = Delete
+MergeInto = Merge into
+MergeWarning = Every product in "%s" will be moved to "%s", any subcategories will be re-parented, and "%s" will be deleted. Product moves can be undone from History; the deleted category cannot be restored.
+ConfirmDelete = Delete category "%s"?
+DeleteWithProducts = This category still holds %s product(s). Detach them and delete anyway?
+CategoryHasChildren = This category has subcategories. Move or merge them first.
+DirectProducts = products
+TreeEmpty = No product categories exist yet.
+
+# History screen
+HistoryTitle = Change history
+BatchDate = When
+BatchUser = By
+BatchSource = Source
+BatchChanges = Changes
+BatchAdds = Added
+BatchRemoves = Removed
+BatchUndo = Undo
+BatchUndone = Undone
+ConfirmUndo = Reverse all %s change(s) in this batch?
+SourceManual = Assign screen
+SourceRules = Rule set
+SourceMerge = Category merge
+SourceUndo = Undo
+NoHistory = Nothing has been changed yet.
+UndoDone = Reversed %s change(s).
+
+# Setup
+DoliCurateSetup = Doli Curate setup
+DoliCurateSetupIntro = Doli Curate adds screens for organising the product catalogue: a bulk assign worklist, re-runnable tagging rules, category tree management, and a coverage dashboard. Every membership change is recorded and can be undone.
+PageSize = Worklist page size
+PageSizeDesc = Products shown per page on the assign screen.
+PreviewLimit = Preview limit
+PreviewLimitDesc = Maximum rows shown when previewing a rule. Higher values make previews slower on large catalogues.
+BatchLimit = Batch limit
+BatchLimitDesc = Maximum membership changes allowed in a single operation. Guards against a mistyped rule rewriting the whole catalogue.
+ShowImages = Show thumbnails
+ShowImagesDesc = Show product photos in the worklist. Slower on large catalogues.
+KeepLogDays = Keep history for
+KeepLogDaysDesc = Days of change history to retain. Older entries can no longer be undone.
+DebugMode = Debug mode
+DebugModeDesc = When enabled, exposes a diagnostic endpoint at /custom/dolicurate/ajax/debug.php.
+
+# Errors
+AccessDenied = You do not have permission for that.
+BatchTooLarge = That operation exceeds the configured batch limit.
+CategoryNotFound = Category not found.
+NotAProductCategory = That is not a product category.
+SiblingLabelExists = A category with that name already exists under the same parent.
+CannotMoveIntoOwnSubtree = A category cannot be moved inside itself.
+CannotBeItsOwnParent = A category cannot be its own parent.
+CannotMergeIntoOwnDescendant = A category cannot be merged into one of its own subcategories.
+SourceAndTargetIdentical = Source and target are the same category.
+HasChildren = This category still has subcategories.
+InvalidRegex = That regular expression is not valid.
+MatchValueRequired = This match type needs a value.
+LabelRequired = A name is required.
+RuleSetNotFound = Rule set not found.
+NothingToUndo = This batch has already been undone.
+BadBatchId = Invalid batch reference.
