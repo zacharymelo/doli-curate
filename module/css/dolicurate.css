@@ -490,3 +490,35 @@ a.dc-chip:hover { background: #c7d2fe; }
 	border-radius: 5px;
 	font-size: 11px;
 }
+
+/* Inline category editor (name + colour + location together). */
+
+.dc-editor {
+	align-items: flex-end;
+	gap: 14px;
+}
+
+.dc-field {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.dc-fieldlabel {
+	font-size: 10px;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	color: #64748b;
+}
+
+.dc-editor input[type="color"] {
+	width: 42px;
+	height: 30px;
+	padding: 2px;
+	border: 1px solid #cbd5e1;
+	border-radius: 6px;
+	background: #fff;
+	cursor: pointer;
+}
+
+.dc-editor .dc-input { min-width: 170px; }

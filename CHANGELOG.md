@@ -5,6 +5,34 @@ All notable changes to Doli Curate are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-08-23
+
+### Changed
+
+- **Rename and Move are now a single Modify action.** The tree row offered
+  Rename, Move, Merge and Delete. Rename and Move have been replaced by one
+  **Modify** editor that opens inline and edits name, colour and location
+  together.
+
+  This fixes a real defect, not just the click count. Renaming validated the new
+  name against the category's **old** parent, while moving validated its **old**
+  name against the new parent — so neither checked the new name against the new
+  location. Renaming and re-parenting in two steps could therefore produce two
+  siblings sharing a name, which makes category paths ambiguous. `updateCategory()`
+  now performs one check against the values the category will actually have.
+
+  The location dropdown omits the category itself and everything beneath it, so
+  a move that would orphan a branch cannot be selected at all. The server-side
+  subtree and self-parent guards remain as a backstop.
+
+  Colour is editable from the same place; previously it could only be set when
+  creating a category.
+
+### Removed
+
+- `DoliCurateTree::renameCategory()` and `moveCategory()`, and the `rename` and
+  `move` AJAX actions, all superseded by `updateCategory()` and `update`.
+
 ## [1.2.0] - 2026-08-22
 
 ### Changed
@@ -121,6 +149,7 @@ First release.
   guarding against a mistyped rule rewriting the whole catalogue.
 - Every query is entity-scoped with `getEntity()`.
 
+[1.3.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.3.0
 [1.2.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.2.0
 [1.1.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.1.0
 [1.0.1]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.0.1

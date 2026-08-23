@@ -64,15 +64,18 @@ switch ($action) {
 		dolicurateJson(array('ok' => true, 'id' => $id));
 		break;
 
-	case 'rename':
-		if ($tree->renameCategory(GETPOSTINT('id'), GETPOST('label', 'alphanohtml'), GETPOST('color', 'alphanohtml'), $user) <= 0) {
-			dolicurateJson(array('ok' => false, 'error' => $tree->error), 400);
-		}
-		dolicurateJson(array('ok' => true));
-		break;
+	case 'update':
+		// Name, colour and parent move together, so they are validated together.
+		// An absent parent means "leave where it is" rather than "make it a root".
+		$newParent = GETPOSTISSET('parent') ? GETPOSTINT('parent') : null;
 
-	case 'move':
-		if ($tree->moveCategory(GETPOSTINT('id'), GETPOSTINT('parent'), $user) <= 0) {
+		if ($tree->updateCategory(
+			GETPOSTINT('id'),
+			GETPOST('label', 'alphanohtml'),
+			GETPOSTISSET('color') ? GETPOST('color', 'alphanohtml') : null,
+			$newParent,
+			$user
+		) <= 0) {
 			dolicurateJson(array('ok' => false, 'error' => $tree->error), 400);
 		}
 		dolicurateJson(array('ok' => true));

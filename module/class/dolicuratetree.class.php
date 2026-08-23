@@ -190,17 +190,26 @@ class DoliCurateTree
 	}
 
 	/**
-	 * Rename a category.
+	 * Update a category's name, colour and location in one operation.
 	 *
-	 * @param  int    $id    Category id
-	 * @param  string $label New label
-	 * @param  string $color New colour, hex without '#'
-	 * @param  User   $user  Acting user
-	 * @return int           1 on success, -1 on error
+	 * Replaces the previous separate rename and move. Splitting them validated
+	 * the wrong pair: renaming checked the new label against the OLD parent,
+	 * while moving checked the OLD label against the new parent. Neither checked
+	 * the new name against the new location, so renaming and re-parenting in two
+	 * steps could produce two siblings sharing a label.
+	 *
+	 * @param  int         $id       Category id
+	 * @param  string      $label    New label
+	 * @param  string|null $color    New colour, hex without '#'; null leaves it
+	 * @param  int|null    $parentId New parent, 0 for a root; null leaves it
+	 * @param  User        $user     Acting user
+	 * @return int                   1 on success, -1 on error
 	 */
-	public function renameCategory($id, $label, $color, $user)
+	public function updateCategory($id, $label, $color, $parentId, $user)
 	{
-		$label = trim($label);
+		$id = (int) $id;
+		$label = trim((string) $label);
+
 		if ($label === '') {
 			$this->error = 'LabelRequired';
 			return -1;
@@ -211,69 +220,39 @@ class DoliCurateTree
 			return -1;
 		}
 
-		if ($this->siblingExists($label, (int) $cat->fk_parent, (int) $cat->id)) {
-			$this->error = 'SiblingLabelExists';
-			return -1;
-		}
+		// A null parent means "leave where it is".
+		$targetParent = ($parentId === null) ? (int) $cat->fk_parent : (int) $parentId;
 
-		$cat->label = $label;
-		if ($color !== null) {
-			$cat->color = preg_replace('/[^0-9a-f]/i', '', (string) $color);
-		}
-
-		if ($cat->update($user) <= 0) {
-			$this->error = $cat->error ?: 'UpdateFailed';
-			return -1;
-		}
-
-		return 1;
-	}
-
-	/**
-	 * Re-parent a category.
-	 *
-	 * Refuses any move that would place a category inside its own subtree,
-	 * which would orphan the branch and hang every tree walk over it.
-	 *
-	 * @param  int  $id          Category to move
-	 * @param  int  $newParentId New parent, 0 to make it a root
-	 * @param  User $user        Acting user
-	 * @return int               1 on success, -1 on error
-	 */
-	public function moveCategory($id, $newParentId, $user)
-	{
-		$id = (int) $id;
-		$newParentId = (int) $newParentId;
-
-		$cat = $this->fetchProductCategory($id);
-		if (!$cat) {
-			return -1;
-		}
-
-		if ($newParentId === $id) {
+		if ($targetParent === $id) {
 			$this->error = 'CannotBeItsOwnParent';
 			return -1;
 		}
 
-		if ($newParentId > 0) {
-			if (!$this->fetchProductCategory($newParentId)) {
+		if ($targetParent > 0 && $targetParent !== (int) $cat->fk_parent) {
+			if (!$this->fetchProductCategory($targetParent)) {
 				return -1;
 			}
 
-			// The target must not sit beneath the category being moved.
+			// The destination must not sit beneath the category being moved.
 			$catalog = new DoliCurateCatalog($this->db);
-			if (in_array($newParentId, $catalog->getDescendantIds($id), true)) {
+			if (in_array($targetParent, $catalog->getDescendantIds($id), true)) {
 				$this->error = 'CannotMoveIntoOwnSubtree';
 				return -1;
 			}
 		}
 
-		if ($this->siblingExists((string) $cat->label, $newParentId, $id)) {
+		// One check, against the values the category will actually have.
+		if ($this->siblingExists($label, $targetParent, $id)) {
 			$this->error = 'SiblingLabelExists';
 			return -1;
 		}
 
-		$cat->fk_parent = $newParentId;
+		$cat->label = $label;
+		$cat->fk_parent = $targetParent;
+		if ($color !== null) {
+			$cat->color = preg_replace('/[^0-9a-f]/i', '', (string) $color);
+		}
+
 		if ($cat->update($user) <= 0) {
 			$this->error = $cat->error ?: 'UpdateFailed';
 			return -1;

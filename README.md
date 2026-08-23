@@ -52,10 +52,12 @@ stock arrives.
 
 ### Category tree
 
-Create, rename, move, merge and delete categories. The destructive operations
-are guarded:
+Create, modify, merge and delete categories. **Modify** edits a category's
+name, colour and location together in one inline editor. The destructive
+operations are guarded:
 
-- A category cannot be moved inside its own subtree.
+- A category cannot be moved inside its own subtree — the location dropdown
+  omits its own descendants, and the server refuses it regardless.
 - A category cannot be merged into one of its own descendants.
 - Duplicate sibling names are rejected, so paths stay unambiguous.
 - Deleting a category with subcategories is refused; deleting one that still

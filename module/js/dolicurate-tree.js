@@ -101,8 +101,7 @@
 
 		var acts = D.make('div', 'dc-treeacts');
 
-		acts.appendChild(actionBtn('Rename', function () { renameFlow(n); }));
-		acts.appendChild(actionBtn('Move', function () { moveFlow(n, row); }));
+		acts.appendChild(actionBtn('Modify', function () { modifyFlow(n, row); }));
 		acts.appendChild(actionBtn('Merge', function () { mergeFlow(n, row); }));
 		acts.appendChild(actionBtn('Delete', function () { deleteFlow(n); }, 'dc-danger'));
 
@@ -118,18 +117,97 @@
 		return b;
 	}
 
-	function renameFlow(n) {
-		var next = prompt('Rename category', n.label);
-		if (next === null) { return; }
-		next = next.trim();
-		if (!next || next === n.label) { return; }
+	/**
+	 * Edit name, colour and parent together.
+	 *
+	 * These were three separate actions. Splitting them meant a rename and a
+	 * re-parent were validated against each other's stale value, and made the
+	 * common case - "this category is misnamed and in the wrong place" - two
+	 * round trips.
+	 */
+	function modifyFlow(n, row) {
+		var existing = row.parentNode.querySelector('.dc-inline');
+		if (existing) { existing.parentNode.removeChild(existing); }
 
-		D.post(D.cfg.urlTree, { action: 'rename', id: n.id, label: next, color: n.color || '' })
-			.then(function (r) {
-				if (!r.ok) { D.notify(r.error || 'Failed', 'error'); return; }
-				D.notify('Renamed.', 'ok');
+		var box = D.make('div', 'dc-inline dc-editor');
+
+		var nameWrap = D.make('label', 'dc-field');
+		nameWrap.appendChild(D.make('span', 'dc-fieldlabel', 'Name'));
+		var nameInput = document.createElement('input');
+		nameInput.type = 'text';
+		nameInput.className = 'dc-input';
+		nameInput.value = n.label;
+		nameWrap.appendChild(nameInput);
+		box.appendChild(nameWrap);
+
+		var colorWrap = D.make('label', 'dc-field');
+		colorWrap.appendChild(D.make('span', 'dc-fieldlabel', 'Colour'));
+		var colorInput = document.createElement('input');
+		colorInput.type = 'color';
+		colorInput.value = '#' + (n.color || '3b82f6');
+		colorWrap.appendChild(colorInput);
+		box.appendChild(colorWrap);
+
+		var parentWrap = D.make('label', 'dc-field');
+		parentWrap.appendChild(D.make('span', 'dc-fieldlabel', 'Location'));
+		// Excludes its own subtree, so an invalid destination cannot be picked.
+		var parentSel = targetOptions(n.id);
+		parentSel.value = String(n.parent || 0);
+		parentWrap.appendChild(parentSel);
+		box.appendChild(parentWrap);
+
+		var save = D.make('button', 'button', 'Save');
+		save.type = 'button';
+
+		var cancel = D.make('button', 'button button-cancel', 'Cancel');
+		cancel.type = 'button';
+		cancel.addEventListener('click', function () { box.parentNode.removeChild(box); });
+
+		function commit() {
+			var label = nameInput.value.trim();
+			if (!label) { D.notify('A name is required.', 'error'); return; }
+
+			save.disabled = true;
+			D.post(D.cfg.urlTree, {
+				action: 'update',
+				id: n.id,
+				label: label,
+				color: (colorInput.value || '').replace('#', ''),
+				parent: parentSel.value
+			}).then(function (r) {
+				save.disabled = false;
+				if (!r.ok) { D.notify(friendlyError(r.error), 'error'); return; }
+				if (box.parentNode) { box.parentNode.removeChild(box); }
+				D.notify('Saved.', 'ok');
 				load();
 			});
+		}
+
+		save.addEventListener('click', commit);
+		nameInput.addEventListener('keydown', function (ev) {
+			if (ev.key === 'Enter') { ev.preventDefault(); commit(); }
+			if (ev.key === 'Escape' && box.parentNode) { box.parentNode.removeChild(box); }
+		});
+
+		box.appendChild(save);
+		box.appendChild(cancel);
+
+		row.parentNode.insertBefore(box, row.nextSibling);
+		nameInput.focus();
+		nameInput.select();
+	}
+
+	/** Turn a server error code into something a user can act on. */
+	function friendlyError(code) {
+		var map = {
+			SiblingLabelExists: 'A category with that name already exists in that location.',
+			CannotMoveIntoOwnSubtree: 'A category cannot be moved inside itself.',
+			CannotBeItsOwnParent: 'A category cannot be its own parent.',
+			LabelRequired: 'A name is required.',
+			NotAProductCategory: 'That is not a product category.',
+			CategoryNotFound: 'Category not found.'
+		};
+		return map[code] || code || 'Failed';
 	}
 
 	/** Inline picker so the user sees valid destinations rather than typing an id. */
@@ -157,16 +235,6 @@
 		box.appendChild(go);
 		box.appendChild(cancel);
 		row.parentNode.insertBefore(box, row.nextSibling);
-	}
-
-	function moveFlow(n, row) {
-		inlinePicker(row, 'Move "' + n.label + '" under:', n.id, function (parent) {
-			D.post(D.cfg.urlTree, { action: 'move', id: n.id, parent: parent }).then(function (r) {
-				if (!r.ok) { D.notify(r.error || 'Failed', 'error'); return; }
-				D.notify('Moved.', 'ok');
-				load();
-			});
-		});
 	}
 
 	function mergeFlow(n, row) {
