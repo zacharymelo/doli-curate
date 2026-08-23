@@ -140,4 +140,15 @@ Config, including the CSRF token, travels in a `<script type="application/json">
 - **`$conf` is stale after `activateModule()` in the same process.** Call `$conf->setValues($db)` before reading new constants.
 - **Category `visible` is vestigial.** `Categorie::create()` writes it from an uninitialised property, so UI-created categories are always `0`, and no core query filters on it. Never filter on it — see the Doli Catalog bug of the same shape.
 - **`fetch_array()` returns numeric *and* named keys.** Filter to named keys before printing rows, or every column appears twice.
+- **The module stylesheet is not cache-busted, by design.** Dolibarr appends a
+  version/theme parameter to CSS registered in `module_parts` only when the path
+  does *not* end in `.css` — core's comment explains that some web server setups
+  return the wrong content type for `style.css?param`, which defeats caching
+  entirely. Following that convention means a CSS change needs a hard refresh
+  after an upgrade. Do not add a query string to the registered path to work
+  around it; a stale stylesheet is a smaller failure than CSS that stops being
+  served as CSS.
+- **The theme sets `select { overflow: hidden }`.** Harmless for dropdowns,
+  breaks `<select multiple>` — the list silently clips with no scrollbar. Any
+  new multi-select needs `overflow-y: auto`.
 - **A form input named `action` shadows `form.action`** in JavaScript.

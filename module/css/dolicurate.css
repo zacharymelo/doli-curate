@@ -272,6 +272,18 @@
 .dc-catpick select { min-width: 240px; }
 .dc-actbtns { display: flex; gap: 8px; align-items: center; }
 
+/* Dolibarr's eldy theme applies a bare `select { overflow: hidden }`. That is
+   harmless for ordinary dropdowns, which the browser draws natively, but it
+   clips a <select multiple>: options past the visible rows cannot be reached by
+   wheel or scrollbar, even though clicking still selects them. Restore
+   scrolling for the multi-selects this module renders. A class selector already
+   outranks the bare element rule, so no !important is needed. */
+select.dc-input[multiple] {
+	overflow-y: auto;
+	min-height: 132px;
+	resize: vertical;
+}
+
 /* --------------------------------------------------------------- rules screen */
 
 .dc-rules-layout {

@@ -5,6 +5,19 @@ All notable changes to Doli Curate are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-08-22
+
+### Fixed
+
+- **Category multi-select could not be scrolled.** Dolibarr's eldy theme applies
+  a bare `select { overflow: hidden }` rule. That is harmless for ordinary
+  dropdowns, which the browser draws natively outside the element box, but it
+  clips a `<select multiple>`: options past the visible rows were unreachable by
+  mouse wheel or scrollbar, with no visual indication that more existed.
+  Clicking still selected, which is why the list looked merely truncated rather
+  than broken. The assign screen's category picker now sets `overflow-y: auto`
+  and shows more rows by default.
+
 ## [1.0.0] - 2026-08-22
 
 First release.
@@ -47,4 +60,5 @@ First release.
   guarding against a mistyped rule rewriting the whole catalogue.
 - Every query is entity-scoped with `getEntity()`.
 
+[1.0.1]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.0.1
 [1.0.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.0.0
