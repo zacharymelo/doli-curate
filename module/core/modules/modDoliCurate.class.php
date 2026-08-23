@@ -41,7 +41,7 @@ class modDoliCurate extends DolibarrModules
 		$this->editor_name = 'Zachary Melo';
 		$this->editor_url = '';
 
-		$this->version = '1.1.0';
+		$this->version = '1.2.0';
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 
 		$this->picto = 'category';
@@ -116,99 +116,56 @@ class modDoliCurate extends DolibarrModules
 		$this->rights[$r][4] = 'curate';
 		$this->rights[$r][5] = 'undo';
 
-		// Menus.
+		// Menus. This module is a catalogue tool, not a top-level concern, so it
+		// lives at the bottom of the Products | Services left menu rather than
+		// claiming its own entry in the main navigation bar. A high position keeps
+		// it below the native product entries.
 		$r = 0;
 
 		$this->menu[$r++] = array(
-			'fk_menu'  => 0,
-			'type'     => 'top',
+			'fk_menu'  => 'fk_mainmenu=products',
+			'type'     => 'left',
 			'titre'    => 'DoliCurate',
 			'prefix'   => img_picto('', $this->picto, 'class="paddingright pictofixedwidth"'),
-			'mainmenu' => 'dolicurate',
-			'leftmenu' => '',
+			'mainmenu' => 'products',
+			'leftmenu' => 'dolicurate',
 			'url'      => '/dolicurate/index.php',
 			'langs'    => 'dolicurate@dolicurate',
-			'position' => 200,
+			'position' => 1000,
 			'enabled'  => 'isModEnabled("dolicurate")',
 			'perms'    => '$user->hasRight("dolicurate", "curate", "read")',
 			'target'   => '',
 			'user'     => 0,
 		);
 
-		$this->menu[$r++] = array(
-			'fk_menu'  => 'fk_mainmenu=dolicurate',
-			'type'     => 'left',
-			'titre'    => 'Dashboard',
-			'mainmenu' => 'dolicurate',
-			'leftmenu' => 'dolicurate_dashboard',
-			'url'      => '/dolicurate/index.php',
-			'langs'    => 'dolicurate@dolicurate',
-			'position' => 210,
-			'enabled'  => 'isModEnabled("dolicurate")',
-			'perms'    => '$user->hasRight("dolicurate", "curate", "read")',
-			'target'   => '',
-			'user'     => 0,
+		// Children appear once the parent entry is the active left menu.
+		$submenus = array(
+			array('Dashboard',   'dolicurate_dashboard', '/dolicurate/index.php',   'read'),
+			array('MenuAssign',  'dolicurate_assign',    '/dolicurate/assign.php',  'read'),
+			array('MenuRules',   'dolicurate_rules',     '/dolicurate/rules.php',   'rules'),
+			array('MenuTree',    'dolicurate_tree',      '/dolicurate/tree.php',    'tree'),
+			array('MenuHistory', 'dolicurate_history',   '/dolicurate/history.php', 'read'),
 		);
 
-		$this->menu[$r++] = array(
-			'fk_menu'  => 'fk_mainmenu=dolicurate',
-			'type'     => 'left',
-			'titre'    => 'MenuAssign',
-			'mainmenu' => 'dolicurate',
-			'leftmenu' => 'dolicurate_assign',
-			'url'      => '/dolicurate/assign.php',
-			'langs'    => 'dolicurate@dolicurate',
-			'position' => 220,
-			'enabled'  => 'isModEnabled("dolicurate")',
-			'perms'    => '$user->hasRight("dolicurate", "curate", "read")',
-			'target'   => '',
-			'user'     => 0,
-		);
+		$position = 1001;
+		foreach ($submenus as $sub) {
+			list($title, $leftmenu, $url, $right) = $sub;
 
-		$this->menu[$r++] = array(
-			'fk_menu'  => 'fk_mainmenu=dolicurate',
-			'type'     => 'left',
-			'titre'    => 'MenuRules',
-			'mainmenu' => 'dolicurate',
-			'leftmenu' => 'dolicurate_rules',
-			'url'      => '/dolicurate/rules.php',
-			'langs'    => 'dolicurate@dolicurate',
-			'position' => 230,
-			'enabled'  => 'isModEnabled("dolicurate")',
-			'perms'    => '$user->hasRight("dolicurate", "curate", "rules")',
-			'target'   => '',
-			'user'     => 0,
-		);
-
-		$this->menu[$r++] = array(
-			'fk_menu'  => 'fk_mainmenu=dolicurate',
-			'type'     => 'left',
-			'titre'    => 'MenuTree',
-			'mainmenu' => 'dolicurate',
-			'leftmenu' => 'dolicurate_tree',
-			'url'      => '/dolicurate/tree.php',
-			'langs'    => 'dolicurate@dolicurate',
-			'position' => 240,
-			'enabled'  => 'isModEnabled("dolicurate")',
-			'perms'    => '$user->hasRight("dolicurate", "curate", "tree")',
-			'target'   => '',
-			'user'     => 0,
-		);
-
-		$this->menu[$r++] = array(
-			'fk_menu'  => 'fk_mainmenu=dolicurate',
-			'type'     => 'left',
-			'titre'    => 'MenuHistory',
-			'mainmenu' => 'dolicurate',
-			'leftmenu' => 'dolicurate_history',
-			'url'      => '/dolicurate/history.php',
-			'langs'    => 'dolicurate@dolicurate',
-			'position' => 250,
-			'enabled'  => 'isModEnabled("dolicurate")',
-			'perms'    => '$user->hasRight("dolicurate", "curate", "read")',
-			'target'   => '',
-			'user'     => 0,
-		);
+			$this->menu[$r++] = array(
+				'fk_menu'  => 'fk_mainmenu=products,fk_leftmenu=dolicurate',
+				'type'     => 'left',
+				'titre'    => $title,
+				'mainmenu' => 'products',
+				'leftmenu' => $leftmenu,
+				'url'      => $url,
+				'langs'    => 'dolicurate@dolicurate',
+				'position' => $position++,
+				'enabled'  => 'isModEnabled("dolicurate")',
+				'perms'    => '$user->hasRight("dolicurate", "curate", "'.$right.'")',
+				'target'   => '',
+				'user'     => 0,
+			);
+		}
 
 		$this->tabs = array();
 	}

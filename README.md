@@ -106,6 +106,12 @@ Then in Dolibarr: **Home → Setup → Modules → Deploy external module**, upl
 `dolicurate-<version>.zip`, enable **Doli Curate**, and grant the rights you want
 under **Users & Groups**. Only *read* is on by default.
 
+The screens appear under **Products | Services → Curate** in the left menu.
+
+> Upgrading from 1.1.x or earlier: disable and re-enable the module once. Menu
+> definitions are written at activation, so the old top-level menu entry stays
+> until you do. Settings and audit history are preserved.
+
 ## Local development
 
 ```bash

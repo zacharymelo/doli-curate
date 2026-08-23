@@ -398,6 +398,153 @@ class DoliCurateCurator
 		}
 		$this->db->free($resql);
 
+		$this->decorateBatchSummaries($out);
+
+		return $out;
+	}
+
+	/**
+	 * Attach a summary of what each batch touched.
+	 *
+	 * Done as one extra query over the listed batches rather than a
+	 * GROUP_CONCAT in the main statement, because GROUP_CONCAT is not portable
+	 * to PostgreSQL. Grouping happens in PHP instead.
+	 *
+	 * @param  array<int,array<string,mixed>> $batches Batches, by reference
+	 * @return void
+	 */
+	private function decorateBatchSummaries(&$batches)
+	{
+		if (empty($batches)) {
+			return;
+		}
+
+		$ids = array();
+		foreach ($batches as $b) {
+			$ids[] = "'".$this->db->escape($b['batch'])."'";
+		}
+
+		// Distinct categories touched, and distinct products affected, per batch.
+		$sql = "SELECT DISTINCT l.batch_id, l.fk_categorie, l.fk_product, c.label";
+		$sql .= " FROM ".MAIN_DB_PREFIX."dolicurate_log as l";
+		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON c.rowid = l.fk_categorie";
+		$sql .= " WHERE l.batch_id IN (".implode(',', $ids).")";
+		$sql .= " AND l.entity IN (".getEntity('dolicurate').")";
+
+		$cats = array();
+		$prods = array();
+		$resql = $this->db->query($sql);
+		if ($resql) {
+			while ($o = $this->db->fetch_object($resql)) {
+				$bid = (string) $o->batch_id;
+				$cid = (int) $o->fk_categorie;
+				// A category deleted since (a merge, for instance) has no label.
+				$cats[$bid][$cid] = ($o->label !== null && $o->label !== '')
+					? (string) $o->label
+					: '#'.$cid;
+				$prods[$bid][(int) $o->fk_product] = true;
+			}
+			$this->db->free($resql);
+		}
+
+		// Rule set names, so a rules batch says which rule set ran.
+		$rulesetIds = array();
+		foreach ($batches as $b) {
+			if (!empty($b['ruleset'])) {
+				$rulesetIds[(int) $b['ruleset']] = true;
+			}
+		}
+		$rulesetNames = array();
+		if (!empty($rulesetIds)) {
+			$sql = "SELECT rowid, label FROM ".MAIN_DB_PREFIX."dolicurate_ruleset";
+			$sql .= " WHERE rowid IN (".$this->db->sanitize(implode(',', array_keys($rulesetIds))).")";
+			$resql = $this->db->query($sql);
+			if ($resql) {
+				while ($o = $this->db->fetch_object($resql)) {
+					$rulesetNames[(int) $o->rowid] = (string) $o->label;
+				}
+				$this->db->free($resql);
+			}
+		}
+
+		foreach ($batches as $k => $b) {
+			$bid = $b['batch'];
+			$batches[$k]['categories'] = isset($cats[$bid]) ? array_values($cats[$bid]) : array();
+			$batches[$k]['products'] = isset($prods[$bid]) ? count($prods[$bid]) : 0;
+			$batches[$k]['ruleset_label'] = (!empty($b['ruleset']) && isset($rulesetNames[(int) $b['ruleset']]))
+				? $rulesetNames[(int) $b['ruleset']]
+				: '';
+		}
+	}
+
+	/**
+	 * The individual changes inside one batch.
+	 *
+	 * This is what makes the history usable: a batch summary says three things
+	 * were added, this says which three, and to where.
+	 *
+	 * @param  string $batchId Batch id
+	 * @param  int    $limit   Maximum rows
+	 * @param  int    $offset  Rows to skip
+	 * @return array{rows:array<int,array<string,mixed>>,total:int} Detail rows
+	 */
+	public function getBatchDetail($batchId, $limit = 200, $offset = 0)
+	{
+		$out = array('rows' => array(), 'total' => 0);
+
+		if (!preg_match('/^[0-9a-f]{32}$/', (string) $batchId)) {
+			$this->error = 'BadBatchId';
+			return $out;
+		}
+
+		$limit = max(1, min((int) $limit, 1000));
+		$offset = max(0, (int) $offset);
+		$escaped = $this->db->escape($batchId);
+
+		$resql = $this->db->query("SELECT COUNT(*) c FROM ".MAIN_DB_PREFIX."dolicurate_log"
+			." WHERE batch_id = '".$escaped."' AND entity IN (".getEntity('dolicurate').")");
+		if ($resql && ($o = $this->db->fetch_object($resql))) {
+			$out['total'] = (int) $o->c;
+			$this->db->free($resql);
+		}
+
+		$sql = "SELECT l.rowid, l.action, l.undone, l.fk_product, l.fk_categorie,";
+		$sql .= " p.ref as product_ref, p.label as product_label, p.fk_product_type,";
+		$sql .= " c.label as category_label, c.color as category_color";
+		$sql .= " FROM ".MAIN_DB_PREFIX."dolicurate_log as l";
+		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."product as p ON p.rowid = l.fk_product";
+		$sql .= " LEFT JOIN ".MAIN_DB_PREFIX."categorie as c ON c.rowid = l.fk_categorie";
+		$sql .= " WHERE l.batch_id = '".$escaped."'";
+		$sql .= " AND l.entity IN (".getEntity('dolicurate').")";
+		$sql .= " ORDER BY c.label ASC, p.ref ASC, l.rowid ASC";
+		$sql .= $this->db->plimit($limit, $offset);
+
+		$resql = $this->db->query($sql);
+		if (!$resql) {
+			$this->error = $this->db->lasterror();
+			return $out;
+		}
+
+		while ($o = $this->db->fetch_object($resql)) {
+			// A product or category deleted since the batch ran still has a log
+			// row. Show the id rather than a blank, so the record stays honest.
+			$out['rows'][] = array(
+				'id' => (int) $o->rowid,
+				'action' => (int) $o->action,
+				'undone' => (int) $o->undone,
+				'product' => (int) $o->fk_product,
+				'product_ref' => ($o->product_ref !== null) ? (string) $o->product_ref : '#'.((int) $o->fk_product),
+				'product_label' => ($o->product_label !== null) ? (string) $o->product_label : '',
+				'product_deleted' => ($o->product_ref === null) ? 1 : 0,
+				'product_type' => (int) $o->fk_product_type,
+				'category' => (int) $o->fk_categorie,
+				'category_label' => ($o->category_label !== null) ? (string) $o->category_label : '#'.((int) $o->fk_categorie),
+				'category_color' => ($o->category_color !== null) ? (string) $o->category_color : '',
+				'category_deleted' => ($o->category_label === null) ? 1 : 0,
+			);
+		}
+		$this->db->free($resql);
+
 		return $out;
 	}
 

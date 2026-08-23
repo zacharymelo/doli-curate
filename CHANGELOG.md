@@ -5,6 +5,39 @@ All notable changes to Doli Curate are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-08-22
+
+### Changed
+
+- **Moved into the Products | Services menu.** The module no longer claims its
+  own entry in the top navigation bar. It now sits at the bottom of the
+  Products | Services left menu as a "Curate" section with its five screens
+  beneath it, which is where a catalogue tool belongs.
+
+  > Upgrading requires disabling and re-enabling the module: menu definitions
+  > are written to `llx_menu` at activation, so the old top-level entry persists
+  > until then. Settings and audit history are unaffected.
+
+- **History rows now say what changed.** The list previously showed only add and
+  remove counts, which was not enough to judge a batch. Each row now carries a
+  summary — "5 products → Docks, Licences, Accessories" — and names the rule set
+  when one was responsible.
+
+### Added
+
+- **Expandable history rows.** Clicking a batch lists every individual change:
+  whether it was an add or a remove, which product, and which category. Products
+  and categories link to their Dolibarr cards.
+
+  Records stay honest when the catalogue moves on: a product or category deleted
+  since the batch ran is shown struck through as `#id (deleted)` rather than as
+  a blank, so a category merge reads correctly long after the source category is
+  gone.
+
+  Detail is fetched on demand and cached per batch, so opening a row costs one
+  request and re-opening costs none. Batches larger than the fetch limit say how
+  many changes are not shown.
+
 ## [1.1.0] - 2026-08-22
 
 ### Changed
@@ -88,6 +121,7 @@ First release.
   guarding against a mistyped rule rewriting the whole catalogue.
 - Every query is entity-scoped with `getEntity()`.
 
+[1.2.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.2.0
 [1.1.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.1.0
 [1.0.1]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.0.1
 [1.0.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.0.0

@@ -49,6 +49,25 @@ if ($action === 'history') {
 	dolicurateJson(array('ok' => true, 'batches' => $curator->listBatches(GETPOSTINT('limit') ?: 50)));
 }
 
+if ($action === 'batch') {
+	$curator = new DoliCurateCurator($db);
+	$detail = $curator->getBatchDetail(
+		GETPOST('batch', 'alphanohtml'),
+		GETPOSTINT('limit') ?: 200,
+		GETPOSTINT('offset')
+	);
+	if (empty($detail['rows']) && $curator->error) {
+		dolicurateJson(array('ok' => false, 'error' => $curator->error), 400);
+	}
+	dolicurateJson(array(
+		'ok' => true,
+		'rows' => $detail['rows'],
+		'total' => $detail['total'],
+		'productUrl' => dol_buildpath('/product/card.php', 1),
+		'categoryUrl' => dol_buildpath('/categories/viewcat.php', 1),
+	));
+}
+
 if ($action === 'tree') {
 	dolicurateJson(array('ok' => true, 'tree' => $catalog->getCategoryTree()));
 }
