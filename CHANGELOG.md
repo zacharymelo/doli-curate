@@ -5,6 +5,31 @@ All notable changes to Doli Curate are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2] - 2026-08-23
+
+### Fixed
+
+- **Deployed JavaScript never reached browsers.** Every script URL was versioned
+  with `MAIN_MODULE_DOLICURATE_VERSION` — a constant Dolibarr does not write —
+  so all of them were pinned to the fallback `?v=1.0.0` permanently. Once a
+  browser cached a file at that URL it kept serving it, and no amount of
+  deploying changed anything.
+
+  This is why shift-click range selection appeared not to work: the browser was
+  still running the 1.0.0 script, which does not contain it. The same applied to
+  every JavaScript change since 1.0.0, including the history batch detail.
+
+  Scripts and the stylesheet are now versioned by the file's modification time,
+  which changes exactly when the file does.
+
+- **Stylesheet had the same problem**, being registered through `module_parts`,
+  which emits an unversioned `<link>`. It is now emitted with a version token.
+  Enabling the module also removes the orphaned `MAIN_MODULE_DOLICURATE_CSS`
+  constant, which `delete_module_parts()` would otherwise leave behind for good.
+
+  > If a script URL still reads `?v=1.0.0` after deploying, the old files are
+  > still in place. A correct install shows a long number.
+
 ## [1.4.1] - 2026-08-23
 
 ### Added
@@ -196,6 +221,7 @@ First release.
   guarding against a mistyped rule rewriting the whole catalogue.
 - Every query is entity-scoped with `getEntity()`.
 
+[1.4.2]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.2
 [1.4.1]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.1
 [1.4.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.0
 [1.3.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.3.0

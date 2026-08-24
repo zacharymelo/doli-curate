@@ -106,7 +106,7 @@ if ($user->hasRight('dolicurate', 'curate', 'assign')) {
 print dol_get_fiche_end();
 
 print dolicurateConfigBlock('assign');
-print '<script src="'.dol_buildpath('/dolicurate/js/dolicurate-assign.js', 1).'?v='.urlencode(getDolGlobalString('MAIN_MODULE_DOLICURATE_VERSION', '1.0.0')).'"></script>';
+print '<script src="'.dol_buildpath('/dolicurate/js/dolicurate-assign.js', 1).'?v='.urlencode(dolicurateAssetVersion('/dolicurate/js/dolicurate-assign.js')).'"></script>';
 
 llxFooter();
 $db->close();

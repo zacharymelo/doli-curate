@@ -41,14 +41,15 @@ class modDoliCurate extends DolibarrModules
 		$this->editor_name = 'Zachary Melo';
 		$this->editor_url = '';
 
-		$this->version = '1.4.1';
+		$this->version = '1.4.2';
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 
 		$this->picto = 'category';
 
 		$this->module_parts = array(
 			'triggers' => 0,
-			'css' => array('/dolicurate/css/dolicurate.css'),
+			// Not registered here: module_parts emits an unversioned <link>, which
+			// browsers cache indefinitely. Emitted by dolicurateStylesheetTag().
 			'hooks' => array('data' => array(), 'entity' => '0'),
 		);
 
@@ -182,6 +183,13 @@ class modDoliCurate extends DolibarrModules
 		if ($result < 0) {
 			return -1;
 		}
+
+		// Upgrade cleanup: delete_module_parts() only removes constants for keys
+		// still in the descriptor, so dropping 'css' orphaned this one and
+		// Dolibarr kept emitting a second, unversioned stylesheet link.
+		$sql = "DELETE FROM ".MAIN_DB_PREFIX."const";
+		$sql .= " WHERE ".$this->db->decrypt('name')." = '".$this->db->escape($this->const_name.'_CSS')."'";
+		$this->db->query($sql);
 
 		$this->migratePermissionIds();
 

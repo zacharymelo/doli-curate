@@ -38,6 +38,8 @@ $cov = $catalog->getCoverage();
 
 llxHeader('', $langs->trans('CurateDashboard'), '', '', 0, 0, '', '', '', 'mod-dolicurate page-dashboard');
 
+print dolicurateStylesheetTag();
+
 print load_fiche_titre($langs->trans('CurateDashboard'), '', 'category');
 
 $head = dolicuratePrepareHead('dashboard');

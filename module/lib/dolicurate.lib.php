@@ -184,11 +184,51 @@ function dolicurateConfigBlock($screen)
 		),
 	);
 
-	$version = urlencode(getDolGlobalString('MAIN_MODULE_DOLICURATE_VERSION', '1.0.0'));
-
-	$out = '<script type="application/json" id="dolicurate-config">'.json_encode($config).'</script>';
+	$out = dolicurateStylesheetTag();
+	$out .= '<script type="application/json" id="dolicurate-config">'.json_encode($config).'</script>';
 	// Shared helpers, loaded here so every screen gets them from one place.
-	$out .= '<script src="'.dol_buildpath('/dolicurate/js/dolicurate-core.js', 1).'?v='.$version.'"></script>';
+	$out .= '<script src="'.dol_buildpath('/dolicurate/js/dolicurate-core.js', 1)
+		.'?v='.urlencode(dolicurateAssetVersion('/dolicurate/js/dolicurate-core.js')).'"></script>';
 
 	return $out;
+}
+
+/**
+ * Cache-busting token for a module asset, derived from the file itself.
+ *
+ * Dolibarr does not write a MAIN_MODULE_DOLICURATE_VERSION constant, so keying
+ * asset URLs to it pinned every one of them to the fallback value permanently.
+ * Browsers then served the first JavaScript they ever cached, and no amount of
+ * deploying changed that - a shipped feature simply never arrived. A file's
+ * modification time changes exactly when the file does.
+ *
+ * @param  string $relPath Module-relative asset path
+ * @return string          Version token for a query string
+ */
+function dolicurateAssetVersion($relPath)
+{
+	$full = dol_buildpath($relPath, 0);
+	$mtime = (is_string($full) && $full !== '' && file_exists($full)) ? filemtime($full) : false;
+
+	if ($mtime === false) {
+		return '0';
+	}
+
+	return (string) $mtime;
+}
+
+/**
+ * The module stylesheet as a versioned <link> tag.
+ *
+ * Registering it through module_parts emitted an unversioned URL, with the same
+ * consequence as above.
+ *
+ * @return string A <link> element
+ */
+function dolicurateStylesheetTag()
+{
+	$rel = '/dolicurate/css/dolicurate.css';
+
+	return '<link rel="stylesheet" type="text/css" href="'
+		.dol_buildpath($rel, 1).'?v='.urlencode(dolicurateAssetVersion($rel)).'">';
 }

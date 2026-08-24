@@ -56,7 +56,7 @@ print '<div id="dc-tree" class="dc-tree"></div>';
 print dol_get_fiche_end();
 
 print dolicurateConfigBlock('tree');
-print '<script src="'.dol_buildpath('/dolicurate/js/dolicurate-tree.js', 1).'?v='.urlencode(getDolGlobalString('MAIN_MODULE_DOLICURATE_VERSION', '1.0.0')).'"></script>';
+print '<script src="'.dol_buildpath('/dolicurate/js/dolicurate-tree.js', 1).'?v='.urlencode(dolicurateAssetVersion('/dolicurate/js/dolicurate-tree.js')).'"></script>';
 
 llxFooter();
 $db->close();

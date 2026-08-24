@@ -45,7 +45,7 @@ print '<div id="dc-history"></div>';
 print dol_get_fiche_end();
 
 print dolicurateConfigBlock('history');
-print '<script src="'.dol_buildpath('/dolicurate/js/dolicurate-history.js', 1).'?v='.urlencode(getDolGlobalString('MAIN_MODULE_DOLICURATE_VERSION', '1.0.0')).'"></script>';
+print '<script src="'.dol_buildpath('/dolicurate/js/dolicurate-history.js', 1).'?v='.urlencode(dolicurateAssetVersion('/dolicurate/js/dolicurate-history.js')).'"></script>';
 
 llxFooter();
 $db->close();
