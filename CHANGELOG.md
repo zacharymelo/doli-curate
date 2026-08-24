@@ -5,6 +5,32 @@ All notable changes to Doli Curate are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-08-23
+
+### Fixed
+
+- **Module id collision.** This module was numbered `500420`, which is also used
+  by another module in the same estate. Dolibarr keys module identity and
+  permission definitions off that number, so two modules sharing one is a real
+  conflict rather than a cosmetic clash.
+
+  The module is now `500500`, and its five permissions moved from
+  `500421`–`500425` to `500501`–`500505`.
+
+  **Existing permission grants are migrated automatically.** Grants live in
+  `llx_user_rights` and `llx_usergroup_rights` keyed by permission id, so
+  renumbering alone would have left every grant pointing at an id this module no
+  longer owns — users would have silently lost access with nothing to explain
+  why. Enabling the module remaps them.
+
+  The migration only touches an old id when nothing else currently claims it in
+  `rights_def`. If another module has taken one, its grants are left alone
+  rather than absorbed. Re-running is safe and does not duplicate grants.
+
+  > Verified with a non-admin user and a group holding rights under the old ids:
+  > both keep exactly the permissions they had, renumbered, and a grant
+  > belonging to another module is untouched.
+
 ## [1.3.0] - 2026-08-23
 
 ### Changed
@@ -149,6 +175,7 @@ First release.
   guarding against a mistyped rule rewriting the whole catalogue.
 - Every query is entity-scoped with `getEntity()`.
 
+[1.4.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.0
 [1.3.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.3.0
 [1.2.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.2.0
 [1.1.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.1.0

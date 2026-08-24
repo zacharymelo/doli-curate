@@ -29,7 +29,7 @@ class modDoliCurate extends DolibarrModules
 	{
 		$this->db = $db;
 
-		$this->numero = 500420;
+		$this->numero = 500500;
 		$this->rights_class = 'dolicurate';
 		$this->family = 'products';
 		$this->module_position = '91';
@@ -41,7 +41,7 @@ class modDoliCurate extends DolibarrModules
 		$this->editor_name = 'Zachary Melo';
 		$this->editor_url = '';
 
-		$this->version = '1.3.0';
+		$this->version = '1.4.0';
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 
 		$this->picto = 'category';
@@ -77,7 +77,7 @@ class modDoliCurate extends DolibarrModules
 		$r = 0;
 
 		$r++;
-		$this->rights[$r][0] = 500421;
+		$this->rights[$r][0] = 500501;
 		$this->rights[$r][1] = 'Read the curation screens';
 		$this->rights[$r][2] = 'r';
 		$this->rights[$r][3] = 1;
@@ -85,7 +85,7 @@ class modDoliCurate extends DolibarrModules
 		$this->rights[$r][5] = 'read';
 
 		$r++;
-		$this->rights[$r][0] = 500422;
+		$this->rights[$r][0] = 500502;
 		$this->rights[$r][1] = 'Assign and remove product categories';
 		$this->rights[$r][2] = 'w';
 		$this->rights[$r][3] = 0;
@@ -93,7 +93,7 @@ class modDoliCurate extends DolibarrModules
 		$this->rights[$r][5] = 'assign';
 
 		$r++;
-		$this->rights[$r][0] = 500423;
+		$this->rights[$r][0] = 500503;
 		$this->rights[$r][1] = 'Create and run tagging rule sets';
 		$this->rights[$r][2] = 'w';
 		$this->rights[$r][3] = 0;
@@ -101,7 +101,7 @@ class modDoliCurate extends DolibarrModules
 		$this->rights[$r][5] = 'rules';
 
 		$r++;
-		$this->rights[$r][0] = 500424;
+		$this->rights[$r][0] = 500504;
 		$this->rights[$r][1] = 'Reshape the category tree (rename, move, merge, delete)';
 		$this->rights[$r][2] = 'w';
 		$this->rights[$r][3] = 0;
@@ -109,7 +109,7 @@ class modDoliCurate extends DolibarrModules
 		$this->rights[$r][5] = 'tree';
 
 		$r++;
-		$this->rights[$r][0] = 500425;
+		$this->rights[$r][0] = 500505;
 		$this->rights[$r][1] = 'Undo a previously applied batch';
 		$this->rights[$r][2] = 'w';
 		$this->rights[$r][3] = 0;
@@ -183,9 +183,70 @@ class modDoliCurate extends DolibarrModules
 			return -1;
 		}
 
+		$this->migratePermissionIds();
+
 		$this->delete_menus();
 
 		return $this->_init(array(), $options);
+	}
+
+	/**
+	 * Move granted permissions from the module's old ids to its current ones.
+	 *
+	 * Releases up to 1.3.x numbered this module 500420 with permission ids
+	 * 500421-500425, which collided with another module. Permission grants are
+	 * stored in llx_user_rights and llx_usergroup_rights by permission id, so
+	 * renumbering without moving them would leave every existing grant pointing
+	 * at an id this module no longer owns - users would silently lose access
+	 * with nothing to indicate why.
+	 *
+	 * An old id is only migrated when nothing currently claims it in
+	 * rights_def. If another module has since taken it, its grants are left
+	 * alone rather than stolen.
+	 *
+	 * @return void
+	 */
+	private function migratePermissionIds()
+	{
+		$map = array(
+			500421 => 500501,
+			500422 => 500502,
+			500423 => 500503,
+			500424 => 500504,
+			500425 => 500505,
+		);
+
+		foreach ($map as $old => $new) {
+			$sql = "SELECT id FROM ".MAIN_DB_PREFIX."rights_def";
+			$sql .= " WHERE id = ".((int) $old);
+			$sql .= " AND module <> '".$this->db->escape($this->rights_class)."'";
+
+			$resql = $this->db->query($sql);
+			$claimed = ($resql && $this->db->num_rows($resql) > 0);
+			if ($resql) {
+				$this->db->free($resql);
+			}
+			if ($claimed) {
+				continue;
+			}
+
+			// Drop any grant already sitting on the new id, so re-running this
+			// cannot produce a user holding the same permission twice.
+			$this->db->query("DELETE FROM ".MAIN_DB_PREFIX."user_rights"
+				." WHERE fk_id = ".((int) $new)
+				." AND fk_user IN (SELECT fk_user FROM (SELECT fk_user FROM ".MAIN_DB_PREFIX."user_rights WHERE fk_id = ".((int) $old).") x)");
+			$this->db->query("DELETE FROM ".MAIN_DB_PREFIX."usergroup_rights"
+				." WHERE fk_id = ".((int) $new)
+				." AND fk_usergroup IN (SELECT fk_usergroup FROM (SELECT fk_usergroup FROM ".MAIN_DB_PREFIX."usergroup_rights WHERE fk_id = ".((int) $old).") x)");
+
+			$this->db->query("UPDATE ".MAIN_DB_PREFIX."user_rights SET fk_id = ".((int) $new)." WHERE fk_id = ".((int) $old));
+			$this->db->query("UPDATE ".MAIN_DB_PREFIX."usergroup_rights SET fk_id = ".((int) $new)." WHERE fk_id = ".((int) $old));
+
+			// Remove the stale definition row if the old activation left one.
+			$this->db->query("DELETE FROM ".MAIN_DB_PREFIX."rights_def"
+				." WHERE id = ".((int) $old)
+				." AND module = '".$this->db->escape($this->rights_class)."'");
+		}
 	}
 
 	/**

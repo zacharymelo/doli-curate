@@ -1,15 +1,15 @@
 # Copyright (C) 2026 Zachary Melo
 # Doli Curate - English
 
-Module500420Name = Doli Curate
-Module500420Desc = Ecrans pour affecter, trier et organiser les categories produits en masse
+Module500500Name = Doli Curate
+Module500500Desc = Ecrans pour affecter, trier et organiser les categories produits en masse
 
 # Permissions
-Permission500421 = Read the curation screens
-Permission500422 = Assign and remove product categories
-Permission500423 = Create and run tagging rule sets
-Permission500424 = Reshape the category tree (rename, move, merge, delete)
-Permission500425 = Undo a previously applied batch
+Permission500501 = Read the curation screens
+Permission500502 = Assign and remove product categories
+Permission500503 = Create and run tagging rule sets
+Permission500504 = Reshape the category tree (rename, move, merge, delete)
+Permission500505 = Undo a previously applied batch
 
 # Menus / tabs
 DoliCurate = Organiser
