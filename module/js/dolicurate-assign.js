@@ -15,6 +15,10 @@
 		// Selection survives paging and filtering, so a user can gather
 		// products from several different filter views before applying.
 		selected: {},
+		// Row index of the last checkbox clicked, used as the anchor for a
+		// shift-click range. Positional, so it is cleared whenever the rows
+		// underneath it change.
+		anchor: null,
 		seq: 0
 	};
 
@@ -42,6 +46,8 @@
 			if (!data.ok) { D.notify(data.error || 'Error', 'error'); return; }
 			state.rows = data.rows;
 			state.total = data.total;
+			// Indices refer to the page that was just replaced.
+			state.anchor = null;
 			render();
 		}).catch(function () {
 			if (seq !== state.seq) { return; }
@@ -67,11 +73,14 @@
 		var th0 = D.make('th', 'dc-c-sel');
 		var all = document.createElement('input');
 		all.type = 'checkbox';
+		all.id = 'dc-selectall';
 		all.title = 'Select all on this page';
 		all.addEventListener('change', function () {
 			state.rows.forEach(function (r) {
 				if (all.checked) { state.selected[r.id] = r; } else { delete state.selected[r.id]; }
 			});
+			// A page-wide toggle invalidates any previous anchor position.
+			state.anchor = null;
 			render();
 		});
 		th0.appendChild(all);
@@ -84,8 +93,8 @@
 		table.appendChild(thead);
 
 		var tbody = D.make('tbody');
-		state.rows.forEach(function (r) {
-			tbody.appendChild(row(r));
+		state.rows.forEach(function (r, i) {
+			tbody.appendChild(row(r, i));
 		});
 		table.appendChild(tbody);
 		host.appendChild(table);
@@ -98,18 +107,93 @@
 		renderSelection();
 	}
 
-	function row(r) {
+	/**
+	 * Set one row's selection, keeping state and the DOM in step.
+	 *
+	 * @param {number}  index   Row index on the current page
+	 * @param {boolean} checked Desired state
+	 */
+	function setRowSelected(index, checked) {
+		var r = state.rows[index];
+		if (!r) { return; }
+
+		if (checked) { state.selected[r.id] = r; } else { delete state.selected[r.id]; }
+
+		var tr = D.el('dc-worklist').querySelector('tr[data-index="' + index + '"]');
+		if (tr) {
+			tr.classList.toggle('selected', checked);
+			var box = tr.querySelector('input[type=checkbox]');
+			if (box) { box.checked = checked; }
+		}
+	}
+
+	/**
+	 * Apply one state across an inclusive span of rows.
+	 *
+	 * The span takes the state of the checkbox that was shift-clicked, so
+	 * shift-clicking a box off clears the range rather than selecting it. That
+	 * matches how file managers and mail clients behave, and makes undoing a
+	 * mis-selected range the same gesture as making one.
+	 *
+	 * @param {number}  from    Anchor index
+	 * @param {number}  to      Index that was shift-clicked
+	 * @param {boolean} checked State to apply
+	 */
+	function selectRange(from, to, checked) {
+		var start = Math.min(from, to);
+		var end = Math.max(from, to);
+
+		for (var i = start; i <= end; i++) {
+			setRowSelected(i, checked);
+		}
+	}
+
+	/**
+	 * Keep the header checkbox truthful after in-place row changes.
+	 *
+	 * Rows are updated without re-rendering the table, so nothing else would
+	 * notice that a range selection had just completed the page.
+	 */
+	function syncSelectAll() {
+		var all = D.el('dc-selectall');
+		if (!all) { return; }
+
+		all.checked = state.rows.length > 0 && state.rows.every(function (r) {
+			return !!state.selected[r.id];
+		});
+	}
+
+	function row(r, index) {
 		var tr = D.make('tr', 'dc-row' + (state.selected[r.id] ? ' selected' : ''));
+		tr.setAttribute('data-index', index);
 
 		var tdSel = D.make('td', 'dc-c-sel');
 		var cb = document.createElement('input');
 		cb.type = 'checkbox';
 		cb.checked = !!state.selected[r.id];
-		cb.addEventListener('change', function () {
-			if (cb.checked) { state.selected[r.id] = r; } else { delete state.selected[r.id]; }
-			tr.classList.toggle('selected', cb.checked);
+		cb.title = 'Shift-click to select a range';
+
+		// Bound on click rather than change: only a click event carries
+		// shiftKey, and by the time it fires the browser has already toggled
+		// the box, so cb.checked is the state the user is asking for.
+		cb.addEventListener('click', function (ev) {
+			var checked = cb.checked;
+
+			if (ev.shiftKey && state.anchor !== null && state.anchor !== index) {
+				selectRange(state.anchor, index, checked);
+				// Shift-clicking drags a text selection across the rows it
+				// spans; clear it so the range does not come back highlighted.
+				var sel = window.getSelection();
+				if (sel && sel.removeAllRanges) { sel.removeAllRanges(); }
+			} else {
+				setRowSelected(index, checked);
+			}
+
+			state.anchor = index;
+			syncSelectAll();
 			renderSelection();
 		});
+
 		tdSel.appendChild(cb);
 		tr.appendChild(tdSel);
 

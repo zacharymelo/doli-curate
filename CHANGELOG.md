@@ -5,6 +5,27 @@ All notable changes to Doli Curate are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-08-23
+
+### Added
+
+- **Shift-click range selection on the assign worklist.** Click one row, then
+  shift-click another to apply that state across every row between them.
+
+  The range takes the state of the checkbox that was shift-clicked, so
+  shift-clicking a box *off* clears the range rather than selecting it — undoing
+  a mis-selected range is the same gesture as making one. Ranges work in both
+  directions.
+
+  The header select-all stays truthful: rows are updated in place rather than
+  re-rendered, so it is resynced explicitly once a range completes the page.
+  Shift-clicking otherwise drags a text selection across the rows it spans, so
+  that is cleared as part of the gesture.
+
+  The anchor is a position on the current page, so it is dropped whenever the
+  rows underneath it change — paging, filtering, or a page-wide select-all.
+  Selections themselves still survive all of those, as before.
+
 ## [1.4.0] - 2026-08-23
 
 ### Fixed
@@ -175,6 +196,7 @@ First release.
   guarding against a mistyped rule rewriting the whole catalogue.
 - Every query is entity-scoped with `getEntity()`.
 
+[1.4.1]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.1
 [1.4.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.0
 [1.3.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.3.0
 [1.2.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.2.0

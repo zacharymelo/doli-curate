@@ -31,6 +31,9 @@ Select rows, pick one or more categories, and add or remove in a single action.
 Selection survives paging and filter changes, so you can gather products across
 several different views before applying anything.
 
+Click a row then shift-click another to select everything between them.
+Shift-clicking a ticked box off clears the range instead.
+
 ### Rules
 
 Named, re-runnable rule sets. A rule matches on:
