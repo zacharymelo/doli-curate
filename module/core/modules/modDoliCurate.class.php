@@ -41,7 +41,7 @@ class modDoliCurate extends DolibarrModules
 		$this->editor_name = 'Zachary Melo';
 		$this->editor_url = '';
 
-		$this->version = '1.4.2';
+		$this->version = '1.4.3';
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 
 		$this->picto = 'category';
@@ -65,13 +65,18 @@ class modDoliCurate extends DolibarrModules
 		$this->phpmin = array(7, 3);
 		$this->need_dolibarr_version = array(19, 0);
 
+		// The last value of each row is deleteonunactive. It is 0 deliberately.
+		// Dolibarr's delete_const() drops any constant flagged 1 when the module is
+		// disabled, and several changes here need a disable/enable cycle to take
+		// effect (menus and hook contexts are only written at activation). Flagging
+		// these 1 would wipe every configured setting during a routine upgrade.
 		$this->const = array(
-			array('DOLICURATE_PAGE_SIZE', 'chaine', '50', 'Products shown per page in the assign worklist', 0, 'current', 1),
-			array('DOLICURATE_PREVIEW_LIMIT', 'chaine', '200', 'Maximum rows shown in a rule preview', 0, 'current', 1),
-			array('DOLICURATE_BATCH_LIMIT', 'chaine', '2000', 'Maximum membership changes in a single operation', 0, 'current', 1),
-			array('DOLICURATE_SHOW_IMAGES', 'chaine', '0', 'Show product thumbnails in the worklist', 0, 'current', 1),
-			array('DOLICURATE_KEEP_LOG_DAYS', 'chaine', '90', 'Days of audit history to retain', 0, 'current', 1),
-			array('DOLICURATE_DEBUG_MODE', 'chaine', '0', 'Expose the diagnostic endpoint', 0, 'current', 1),
+			array('DOLICURATE_PAGE_SIZE', 'chaine', '50', 'Products shown per page in the assign worklist', 0, 'current', 0),
+			array('DOLICURATE_PREVIEW_LIMIT', 'chaine', '200', 'Maximum rows shown in a rule preview', 0, 'current', 0),
+			array('DOLICURATE_BATCH_LIMIT', 'chaine', '2000', 'Maximum membership changes in a single operation', 0, 'current', 0),
+			array('DOLICURATE_SHOW_IMAGES', 'chaine', '0', 'Show product thumbnails in the worklist', 0, 'current', 0),
+			array('DOLICURATE_KEEP_LOG_DAYS', 'chaine', '90', 'Days of audit history to retain', 0, 'current', 0),
+			array('DOLICURATE_DEBUG_MODE', 'chaine', '0', 'Expose the diagnostic endpoint', 0, 'current', 0),
 		);
 
 		// Permissions. Read is granted by default; every writing action is not.

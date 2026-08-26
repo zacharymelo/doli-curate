@@ -5,6 +5,19 @@ All notable changes to Doli Curate are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.3] - 2026-08-24
+
+### Fixed
+
+- **Settings no longer vanish when the module is disabled.** Every constant was
+  declared with Dolibarr's `deleteonunactive` flag set, so `delete_const()`
+  dropped the lot on deactivation. Since upgrading this module requires a
+  disable/enable cycle — for the menu placement and the permission-id migration
+  — the configuration was being wiped as part of a normal upgrade.
+
+  All constants now persist. A genuinely missing constant is still seeded with
+  its declared default, and an existing value is never overwritten.
+
 ## [1.4.2] - 2026-08-23
 
 ### Fixed
@@ -221,6 +234,7 @@ First release.
   guarding against a mistyped rule rewriting the whole catalogue.
 - Every query is entity-scoped with `getEntity()`.
 
+[1.4.3]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.3
 [1.4.2]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.2
 [1.4.1]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.1
 [1.4.0]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.0
