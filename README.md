@@ -113,9 +113,23 @@ under **Users & Groups**. Only *read* is on by default.
 
 The screens appear under **Products | Services → Curate** in the left menu.
 
-> Upgrading from 1.1.x or earlier: disable and re-enable the module once. Menu
-> definitions are written at activation, so the old top-level menu entry stays
-> until you do. Settings and audit history are preserved.
+### Upgrading
+
+Disable and re-enable the module once after deploying a new build. Menus, hook
+contexts and permission definitions are only written at activation, and two
+migrations run there.
+
+- **From 1.3.x or earlier**, the module was numbered `500420`, which collided
+  with another module. It is now `500500` and its permissions moved from
+  `500421`–`500425` to `500501`–`500505`. Existing grants are migrated on enable,
+  so nobody loses access; a permission id already claimed by another module is
+  left alone rather than absorbed.
+- **From 1.4.1 or earlier**, settings were declared delete-on-deactivate, so
+  disabling the module discarded its configuration. That is fixed — settings now
+  survive the cycle — but anything configured before upgrading was already lost,
+  so check the setup page once afterwards.
+
+Audit history is preserved throughout.
 
 ## Local development
 
@@ -165,7 +179,12 @@ recent batches. `?mode=sql&q=SELECT...` runs read-only queries.
 
 ## Related
 
-[Doli Catalog](https://github.com/zacharymelo/doli-catalog) puts a visual
-category browser into quote, order, invoice and BOM line entry. Doli Curate is
-what you use to make that browser worth opening — the two are independent, but
-a well-curated tree is what makes picking fast.
+[Doli Catalog](https://github.com/zacharymelo/doli-catalog) puts a category
+browser into quote, order, invoice and BOM line entry, plus a standalone
+catalogue page.
+
+The two are independent, but each is worth more with the other. A product in no
+category cannot be reached by browsing anywhere in Dolibarr, only by search, so
+how much that browser is worth depends on how well the catalogue is tagged —
+which is what this module is for. The coverage dashboard here is effectively a
+readout of how much of the catalogue that browser can currently reach.

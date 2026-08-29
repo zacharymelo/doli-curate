@@ -41,7 +41,7 @@ class modDoliCurate extends DolibarrModules
 		$this->editor_name = 'Zachary Melo';
 		$this->editor_url = '';
 
-		$this->version = '1.4.3';
+		$this->version = '1.4.4';
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 
 		$this->picto = 'category';

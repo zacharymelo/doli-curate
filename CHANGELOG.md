@@ -5,6 +5,19 @@ All notable changes to Doli Curate are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.4] - 2026-08-24
+
+### Documentation
+
+- **Upgrade guidance rewritten.** It described only the 1.1.x menu move and
+  claimed settings are preserved across a disable/enable cycle — which was not
+  true before 1.4.2. It now covers both migrations that run on enable: the
+  module id renumber from `500420` to `500500` with its permission-grant
+  migration, and the settings-persistence fix, including the one-time loss for
+  anyone upgrading from an earlier build.
+- The related-module section now explains *why* the two belong together rather
+  than only noting that they do.
+
 ## [1.4.3] - 2026-08-24
 
 ### Fixed
@@ -234,6 +247,7 @@ First release.
   guarding against a mistyped rule rewriting the whole catalogue.
 - Every query is entity-scoped with `getEntity()`.
 
+[1.4.4]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.4
 [1.4.3]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.3
 [1.4.2]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.2
 [1.4.1]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.1
