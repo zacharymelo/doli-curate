@@ -41,7 +41,7 @@ class modDoliCurate extends DolibarrModules
 		$this->editor_name = 'Zachary Melo';
 		$this->editor_url = '';
 
-		$this->version = '1.4.4';
+		$this->version = '1.4.5';
 		$this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
 
 		$this->picto = 'category';
@@ -76,6 +76,7 @@ class modDoliCurate extends DolibarrModules
 			array('DOLICURATE_BATCH_LIMIT', 'chaine', '2000', 'Maximum membership changes in a single operation', 0, 'current', 0),
 			array('DOLICURATE_SHOW_IMAGES', 'chaine', '0', 'Show product thumbnails in the worklist', 0, 'current', 0),
 			array('DOLICURATE_KEEP_LOG_DAYS', 'chaine', '90', 'Days of audit history to retain', 0, 'current', 0),
+			array('DOLICURATE_EXPAND_LISTS', 'chaine', '0', 'Show category lists expanded until a user collapses them', 0, 'current', 0),
 			array('DOLICURATE_DEBUG_MODE', 'chaine', '0', 'Expose the diagnostic endpoint', 0, 'current', 0),
 		);
 

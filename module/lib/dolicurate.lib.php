@@ -157,6 +157,39 @@ function dolicuratePrintInputRow($constant, $labelKey, $helpKey, $type = 'text',
 }
 
 /**
+ * Parse a cookie holding which category-list branches a user toggled.
+ *
+ * The value is "open:1,2" (only these are expanded) or "closed:3,4" (all but
+ * these are expanded). The scripts write whichever form lists the exceptions to
+ * the admin's default, so categories added later follow that default. A bare
+ * id list, as written by 1.4.5 test builds, is read as "open".
+ *
+ * @param  string $name Cookie name
+ * @return array        array('mode' => 'open'|'closed'|null, 'ids' => array(id => true))
+ */
+function dolicurateReadListCookie($name)
+{
+	$out = array('mode' => null, 'ids' => array());
+	if (empty($_COOKIE[$name]) || !is_string($_COOKIE[$name])) {
+		return $out;
+	}
+
+	$raw = $_COOKIE[$name];
+	$out['mode'] = 'open';
+	if (preg_match('/^(open|closed):(.*)$/', $raw, $m)) {
+		$out['mode'] = $m[1];
+		$raw = $m[2];
+	}
+	foreach (explode(',', $raw) as $id) {
+		if ((int) $id > 0) {
+			$out['ids'][(int) $id] = true;
+		}
+	}
+
+	return $out;
+}
+
+/**
  * Bootstrap payload shared by every screen's JavaScript.
  *
  * @param  string $screen Screen name
@@ -174,6 +207,8 @@ function dolicurateConfigBlock($screen)
 		'urlRules' => dol_buildpath('/dolicurate/ajax/rules.php', 1),
 		'urlTree' => dol_buildpath('/dolicurate/ajax/tree.php', 1),
 		'urlStats' => dol_buildpath('/dolicurate/ajax/stats.php', 1),
+		'cookiePath' => dol_buildpath('/dolicurate/', 1),
+		'expandLists' => getDolGlobalInt('DOLICURATE_EXPAND_LISTS') ? 1 : 0,
 		'pageSize' => max(1, getDolGlobalInt('DOLICURATE_PAGE_SIZE', 50)),
 		'previewLimit' => max(1, getDolGlobalInt('DOLICURATE_PREVIEW_LIMIT', 200)),
 		'can' => array(

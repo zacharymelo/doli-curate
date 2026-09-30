@@ -5,6 +5,25 @@ All notable changes to Doli Curate are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.5] - 2026-09-30
+
+### Added
+
+- **Collapsible category lists on the Dashboard and Category tree.** A catalogue
+  with many categories made both pages very tall. Categories with children now
+  have a toggle and show how many subcategories they hold, and each list has
+  *Expand all* / *Collapse all*. By default only the top level shows.
+- **The expanded view is remembered** in a cookie per screen
+  (`dolicurate_dash_open`, `dolicurate_tree_open`), scoped to the module path.
+  The dashboard reads it server-side, so the page renders collapsed without a
+  flash. On the tree, creating, moving or merging into a collapsed branch
+  expands it so the result stays visible.
+- **Setting: *Expand category lists by default*** (`DOLICURATE_EXPAND_LISTS`,
+  off by default). Chooses whether the lists open collapsed to the top level or
+  fully expanded for a user who has not toggled anything yet. The cookie stores
+  only the branches that differ from this default, so categories added later
+  follow it, and changing the setting does not scramble anyone's saved view.
+
 ## [1.4.4] - 2026-08-24
 
 ### Documentation
@@ -247,6 +266,7 @@ First release.
   guarding against a mistyped rule rewriting the whole catalogue.
 - Every query is entity-scoped with `getEntity()`.
 
+[1.4.5]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.5
 [1.4.4]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.4
 [1.4.3]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.3
 [1.4.2]: https://github.com/zacharymelo/doli-curate/releases/tag/v1.4.2

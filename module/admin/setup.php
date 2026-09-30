@@ -92,6 +92,7 @@ dolicuratePrintInputRow('DOLICURATE_PAGE_SIZE', 'PageSize', 'PageSizeDesc', 'num
 dolicuratePrintInputRow('DOLICURATE_PREVIEW_LIMIT', 'PreviewLimit', 'PreviewLimitDesc', 'number', '200', 'min="10" max="2000" style="width:80px;"');
 dolicuratePrintInputRow('DOLICURATE_BATCH_LIMIT', 'BatchLimit', 'BatchLimitDesc', 'number', '2000', 'min="1" max="20000" style="width:80px;"');
 dolicuratePrintInputRow('DOLICURATE_KEEP_LOG_DAYS', 'KeepLogDays', 'KeepLogDaysDesc', 'number', '90', 'min="1" max="3650" style="width:80px;"');
+dolicuratePrintToggleRow('DOLICURATE_EXPAND_LISTS', 'ExpandLists', 'ExpandListsDesc');
 dolicuratePrintToggleRow('DOLICURATE_SHOW_IMAGES', 'ShowImages', 'ShowImagesDesc');
 dolicuratePrintToggleRow('DOLICURATE_DEBUG_MODE', 'DebugMode', 'DebugModeDesc');
 

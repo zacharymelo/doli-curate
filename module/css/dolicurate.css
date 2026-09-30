@@ -390,6 +390,8 @@ select.dc-input[multiple] {
 .dc-treelabel { font-size: 13px; color: #0f172a; }
 .dc-treecount { font-size: 11px; color: #94a3b8; white-space: nowrap; }
 .dc-treeacts { display: flex; gap: 2px; flex: 0 0 auto; }
+.dc-treebar { display: flex; align-items: center; gap: 2px; padding: 6px 8px; border-bottom: 1px solid #f1f5f9; }
+.dc-treebar-sep { color: #94a3b8; }
 
 .dc-inline {
 	display: flex;
@@ -423,6 +425,10 @@ select.dc-input[multiple] {
 	padding: 0 2px;
 	line-height: 1;
 }
+
+/* Dashboard category breakdown: leaves get a spacer so labels line up. */
+.dc-caret-spacer { display: inline-block; width: 15px; }
+#dc-dash-tree tr.dc-hidden { display: none; }
 
 .dc-batchrow.dc-expanded { background: #eff6ff; }
 .dc-nowrap { white-space: nowrap; }

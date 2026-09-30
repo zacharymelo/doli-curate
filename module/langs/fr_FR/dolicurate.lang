@@ -32,6 +32,11 @@ CoverageLinks = Category links
 CoverageHint = Les produits sans categorie ne sont accessibles par navigation nulle part dans Dolibarr, uniquement par recherche.
 StartAssigning = Assign categories
 ViewUntagged = Show untagged
+DashExpandAll = Tout deplier
+DashCollapseAll = Tout replier
+DashToggleCategory = Afficher ou masquer les sous-categories
+DashSubcategory = 1 sous-categorie
+DashSubcategories = %s sous-categories
 
 # Assign screen
 AssignTitle = Affecter des categories
@@ -140,6 +145,8 @@ PreviewLimit = Preview limit
 PreviewLimitDesc = Maximum rows shown when previewing a rule. Higher values make previews slower on large catalogues.
 BatchLimit = Batch limit
 BatchLimitDesc = Maximum membership changes allowed in a single operation. Guards against a mistyped rule rewriting the whole catalogue.
+ExpandLists = Deplier les listes de categories par defaut
+ExpandListsDesc = Desactive, le tableau de bord et l'arborescence s'ouvrent avec seulement les categories de premier niveau. Dans tous les cas, l'affichage choisi par chaque utilisateur est memorise dans son navigateur et reste prioritaire.
 ShowImages = Show thumbnails
 ShowImagesDesc = Show product photos in the worklist. Slower on large catalogues.
 KeepLogDays = Keep history for
