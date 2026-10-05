@@ -38,13 +38,19 @@ var DoliCurate = (function () {
 		};
 	}
 
-	/** GET JSON. */
+	/**
+	 * GET JSON. Carries the CSRF token too: from Dolibarr 24 any GET with an
+	 * 'action' parameter is refused without one.
+	 */
 	function get(url, params) {
 		var q = new URLSearchParams(params || {});
+		q.set('token', CFG.token);
 		return fetch(url + '?' + q.toString(), {
 			credentials: 'same-origin',
 			headers: { 'X-Requested-With': 'XMLHttpRequest' }
-		}).then(function (r) { return r.json(); });
+		}).then(function (r) {
+			return r.json().catch(function () { return { ok: false, error: 'BadResponse' }; });
+		});
 	}
 
 	/** POST JSON, always carrying the CSRF token. */

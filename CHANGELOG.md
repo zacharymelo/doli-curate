@@ -5,6 +5,21 @@ All notable changes to Doli Curate are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.6] - 2026-10-05
+
+### Fixed
+
+- **Dolibarr 24: Rules, Category tree and History loaded nothing.** Dolibarr 24
+  raises the default `MAIN_SECURITY_CSRF_WITH_TOKEN` to 3, which refuses any GET
+  carrying an `action` parameter unless it also carries the CSRF token. The
+  module sent the token only on writes, so every read came back as a 403 and
+  the screens stayed empty. A new rule set was saved but never appeared. Reads
+  now send the token too.
+- **A refused request is reported instead of failing silently.** A non-JSON
+  response to a read now shows an error rather than an uncaught exception, and
+  a write rejected for a stale token returns `InvalidToken` instead of falling
+  through to the default read action and reporting success.
+
 ## [1.4.5] - 2026-09-30
 
 ### Added

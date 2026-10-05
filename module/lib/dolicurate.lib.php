@@ -88,7 +88,12 @@ function dolicurateAjaxGuard($right = 'read', $needPost = false)
 {
 	global $user;
 
-	if ($needPost && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+	// main.inc.php strips the request parameters when the token is stale, which
+	// would otherwise fall through to a default read action and report success.
+	if (GETPOST('errorcode', 'aZ09') === 'InvalidToken') {
+		dolicurateJson(array('ok' => false, 'error' => 'InvalidToken'), 403);
+	}
+	if ($needPost &&$_SERVER['REQUEST_METHOD'] !== 'POST') {
 		dolicurateJson(array('ok' => false, 'error' => 'MethodNotAllowed'), 405);
 	}
 	if (!isModEnabled('dolicurate')) {
